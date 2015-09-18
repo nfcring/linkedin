@@ -64,29 +64,28 @@ for (my $page=$split_page;$page<$pages;$page++){
     my $gruppeurl = "https://www.linkedin.com/grp/members?gid=$gid";
     $ua->get($gruppeurl);
     my $result = $ua->content();
-   
+    
     if($result =~ m/class="member-count identified">([0-9,]+)\s+members<\/a>/){
 	my $num_gr_members = join('', split(',',$1));
 	$pages = ceil($num_gr_members/20);
-		
+	
 #	my @links = $ua->find_all_links(url_regex => qr{/profile/view\?id=[^"]+anetppl_profile}); 
 #
-	my @links = $ua->find_all_links(url_regex => qr{/profile/view\?id=(.*)$}); 
-	print Dumper(\@links);
-       
+	my @links = $ua->find_all_links(url_regex => qr{/profile/view\?id=([A-Za-z0-9_]+)$}); 
+	
 	@urls = map { $_->url_abs()->full_path() } @links;
 	
 	my @uniq_links = uniq(@urls);
-	
 	for my $i (@uniq_links){
-	    $i =~ m/id=(\d+)/g; #finds the usernumber in url
-	    if(!defined($checkvisit{$1})){
+	    $i =~ m/id=(.*)&trk/g; #finds the user_id in url
+	    
+	    if(!defined($checkvisit{$i})){
 		$count_visited_new++;
 		print "+ Not visited before\n";
 		print "[$count_visited_new] - Visiting url:https://www.linkedin.com$i\n";
-		$visited{$1}=time();
-		print MYFILE "$1 $visited{$1}\n";
-		print "Wrote $1 $visited{$1} to file\n";
+		$visited{$i}=time();
+		print MYFILE "$i $visited{$i}\n";
+		print "Wrote $i $visited{$i} to file\n";
 		$ua->get("https://www.linkedin.com$i");
 		my $num = int (rand(15) +1);
 		print "Sleeping $num seconds\n\n";
